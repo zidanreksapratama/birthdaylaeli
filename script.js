@@ -2,16 +2,13 @@
 (() => {
   "use strict";
 
-  // =========================================================
-  // HELPER
-  // =========================================================
-  const $ = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
   // =========================================================
   // ELEMENTS
   // =========================================================
+
   const gate = $("#gate");
   const site = $("#site");
   const openBtn = $("#openBtn");
@@ -23,20 +20,8 @@
   let audioCtx = null;
   let musicPlaying = false;
 
-
   // =========================================================
   // BACKSOUND MP3
-  // =========================================================
-  // File MP3 harus berada satu folder dengan index.html:
-  //
-  // HBD-Laeli-Interactive/
-  // ├── index.html
-  // ├── script.js
-  // ├── style.css
-  // └── nastelbom-happy-birthday-471481.mp3
-  //
-  // Audio dimulai setelah tombol "Buka Kejutan" ditekan,
-  // sehingga tidak terkena masalah autoplay browser.
   // =========================================================
 
   if (bgMusic) {
@@ -44,7 +29,6 @@
     bgMusic.preload = "auto";
     bgMusic.volume = 0.32;
   }
-
 
   function updateMusicButton() {
     if (!musicBtn) return;
@@ -62,22 +46,21 @@
     }
   }
 
-
   function startMusic() {
     if (!bgMusic) return;
 
     bgMusic.volume = 0.32;
 
-    const playPromise = bgMusic.play();
+    const promise = bgMusic.play();
 
-    if (playPromise !== undefined) {
-      playPromise
+    if (promise !== undefined) {
+      promise
         .then(() => {
           musicPlaying = true;
           updateMusicButton();
         })
         .catch((error) => {
-          console.log("Backsound belum dapat diputar:", error);
+          console.log("Backsound gagal diputar:", error);
           musicPlaying = false;
           updateMusicButton();
         });
@@ -87,18 +70,14 @@
     }
   }
 
-
   function stopMusic() {
     if (!bgMusic) return;
 
     bgMusic.pause();
     musicPlaying = false;
-
     updateMusicButton();
   }
 
-
-  // Tombol Music
   musicBtn?.addEventListener("click", () => {
     if (musicPlaying) {
       stopMusic();
@@ -107,125 +86,112 @@
     }
   });
 
-
-  // Kalau audio selesai karena alasan tertentu,
-  // otomatis mulai lagi karena seharusnya loop.
-  bgMusic?.addEventListener("ended", () => {
-    if (musicPlaying) {
-      bgMusic.currentTime = 0;
-      bgMusic.play().catch(() => {});
-    }
-  });
-
-
   // =========================================================
   // TOAST
   // =========================================================
-  function showToast(msg) {
+
+  function showToast(message) {
     if (!toast) return;
 
-    toast.textContent = msg;
+    toast.textContent = message;
     toast.classList.add("show");
 
-    clearTimeout(showToast.t);
+    clearTimeout(showToast.timer);
 
-    showToast.t = setTimeout(() => {
+    showToast.timer = setTimeout(() => {
       toast.classList.remove("show");
     }, 2200);
   }
 
-
   // =========================================================
   // HEART EFFECT
   // =========================================================
+
   function burstHearts(
     count = 18,
-    x = innerWidth / 2,
-    y = innerHeight * 0.45
+    x = window.innerWidth / 2,
+    y = window.innerHeight * 0.45
   ) {
     for (let i = 0; i < count; i++) {
-      const h = document.createElement("span");
+      const heart = document.createElement("span");
 
-      h.className = "heart-float";
-      h.textContent = ["♥", "♡", "✦"][i % 3];
+      heart.className = "heart-float";
+      heart.textContent = ["♥", "♡", "✦"][i % 3];
 
-      h.style.left = x + "px";
-      h.style.top = y + "px";
+      heart.style.left = `${x}px`;
+      heart.style.top = `${y}px`;
 
-      h.style.setProperty(
+      heart.style.setProperty(
         "--x",
         `${(Math.random() - 0.5) * 220}px`
       );
 
-      h.style.animationDelay =
-        Math.random() * 0.2 + "s";
+      heart.style.animationDelay = `${Math.random() * 0.2}s`;
+      heart.style.fontSize = `${12 + Math.random() * 20}px`;
 
-      h.style.fontSize =
-        12 + Math.random() * 20 + "px";
+      document.body.appendChild(heart);
 
-      document.body.appendChild(h);
-
-      setTimeout(() => h.remove(), 1900);
+      setTimeout(() => {
+        heart.remove();
+      }, 1900);
     }
   }
 
+  // =========================================================
+  // CONFETTI
+  // =========================================================
 
-  // =========================================================
-  // CONFETTI EFFECT
-  // =========================================================
   function confetti(count = 90) {
     const shapes = ["●", "■", "◆", "✦"];
 
     for (let i = 0; i < count; i++) {
-      const c = document.createElement("span");
+      const item = document.createElement("span");
 
-      c.className = "confetti";
-      c.textContent = shapes[i % shapes.length];
+      item.className = "confetti";
+      item.textContent = shapes[i % shapes.length];
 
-      c.style.left =
-        innerWidth * 0.5 +
+      item.style.left =
+        window.innerWidth * 0.5 +
         (Math.random() - 0.5) * 30 +
         "px";
 
-      c.style.top =
-        innerHeight * 0.35 +
+      item.style.top =
+        window.innerHeight * 0.35 +
         (Math.random() - 0.5) * 20 +
         "px";
 
-      c.style.color = [
+      item.style.color = [
         "#ff5b9a",
         "#ffb6d0",
         "#7e5265",
         "#ffd6e4"
       ][i % 4];
 
-      c.style.setProperty(
+      item.style.setProperty(
         "--x",
-        `${(Math.random() - 0.5) * innerWidth * 1.4}px`
+        `${(Math.random() - 0.5) * window.innerWidth * 1.4}px`
       );
 
-      c.style.setProperty(
+      item.style.setProperty(
         "--y",
-        `${120 + Math.random() * innerHeight * 0.75}px`
+        `${120 + Math.random() * window.innerHeight * 0.75}px`
       );
 
-      c.style.transform =
+      item.style.transform =
         `rotate(${Math.random() * 360}deg)`;
 
-      document.body.appendChild(c);
+      document.body.appendChild(item);
 
-      setTimeout(() => c.remove(), 1900);
+      setTimeout(() => {
+        item.remove();
+      }, 1900);
     }
   }
-
 
   // =========================================================
   // TINY MELODY
   // =========================================================
-  // Ini TIDAK menggunakan MP3.
-  // Ini adalah efek suara pendek untuk interaksi tertentu.
-  // Backsound utama tetap menggunakan file MP3.
-  // =========================================================
+
   function tinyMelody() {
     try {
       audioCtx =
@@ -250,96 +216,91 @@
         698.46
       ];
 
-      notes.forEach((freq, i) => {
+      notes.forEach((frequency, index) => {
         const startTime =
-          audioCtx.currentTime + i * 0.17;
+          audioCtx.currentTime + index * 0.17;
 
-        const o = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
+        const oscillator = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
 
-        o.type = "sine";
-        o.frequency.value = freq;
+        oscillator.type = "sine";
+        oscillator.frequency.value = frequency;
 
-        g.gain.setValueAtTime(
-          0,
-          startTime
-        );
+        gain.gain.setValueAtTime(0, startTime);
 
-        g.gain.linearRampToValueAtTime(
+        gain.gain.linearRampToValueAtTime(
           0.035,
           startTime + 0.02
         );
 
-        g.gain.exponentialRampToValueAtTime(
+        gain.gain.exponentialRampToValueAtTime(
           0.001,
           startTime + 0.16
         );
 
-        o.connect(g);
-        g.connect(audioCtx.destination);
+        oscillator.connect(gain);
+        gain.connect(audioCtx.destination);
 
-        o.start(startTime);
-        o.stop(startTime + 0.18);
+        oscillator.start(startTime);
+        oscillator.stop(startTime + 0.18);
       });
-
-    } catch (e) {
-      console.log("Tiny melody error:", e);
+    } catch (error) {
+      console.log("Tiny melody error:", error);
     }
   }
 
-
   // =========================================================
-  // OPEN / BUKA KEJUTAN
+  // BUKA KEJUTAN
   // =========================================================
-  openBtn?.addEventListener("click", () => {
 
-    gate?.classList.add("leaving");
+  if (openBtn) {
+    openBtn.addEventListener("click", () => {
 
-    setTimeout(() => {
+      gate?.classList.add("leaving");
 
-      if (gate) {
-        gate.hidden = true;
-      }
+      setTimeout(() => {
 
-      if (site) {
-        site.hidden = false;
-
-        const hero = site.querySelector(".hero");
-
-        if (hero) {
-          hero.classList.add("visible");
+        if (gate) {
+          gate.hidden = true;
         }
-      }
 
-      // Efek visual
-      burstHearts(28);
-      confetti(55);
+        if (site) {
+          site.hidden = false;
 
-      // Efek suara pendek
-      tinyMelody();
+          const hero = site.querySelector(".hero");
 
-      // Mulai backsound MP3
-      startMusic();
+          if (hero) {
+            hero.classList.add("visible");
+          }
+        }
 
-      window.scrollTo(0, 0);
+        burstHearts(28);
+        confetti(55);
 
-    }, 450);
-  });
+        tinyMelody();
 
+        startMusic();
+
+        window.scrollTo(0, 0);
+
+      }, 450);
+    });
+  }
 
   // =========================================================
   // START BUTTON
   // =========================================================
+
   $("#startBtn")?.addEventListener("click", () => {
     $("#letter")?.scrollIntoView({
       behavior: "smooth"
     });
   });
 
-
   // =========================================================
   // ENVELOPE / LETTER
   // =========================================================
+
   const envelope = $("#envelope");
   const letter = $("#letter");
 
@@ -356,28 +317,26 @@
     if (isOpen) {
       burstHearts(
         16,
-        innerWidth / 2,
-        innerHeight * 0.55
+        window.innerWidth / 2,
+        window.innerHeight * 0.55
       );
 
       tinyMelody();
     }
   });
 
-
   // =========================================================
   // PHOTO LIGHTBOX
   // =========================================================
+
   const lightbox = $("#lightbox");
 
-  const openPhoto = () => {
+  function openPhoto() {
     if (!lightbox) return;
 
     lightbox.hidden = false;
-
     burstHearts(8);
-  };
-
+  }
 
   $("#photoBtn")?.addEventListener(
     "click",
@@ -389,7 +348,6 @@
     openPhoto
   );
 
-
   $("#closeLightbox")?.addEventListener(
     "click",
     () => {
@@ -399,55 +357,49 @@
     }
   );
 
-
   lightbox?.addEventListener(
     "click",
-    (e) => {
-      if (e.target === lightbox) {
+    (event) => {
+      if (event.target === lightbox) {
         lightbox.hidden = true;
       }
     }
   );
 
+  // =========================================================
+  // ESCAPE
+  // =========================================================
 
-  // =========================================================
-  // ESCAPE TO CLOSE LIGHTBOX
-  // =========================================================
   document.addEventListener(
     "keydown",
-    (e) => {
-
-      if (e.key === "Escape") {
-
+    (event) => {
+      if (event.key === "Escape") {
         if (lightbox) {
           lightbox.hidden = true;
         }
-
       }
     }
   );
 
+  // =========================================================
+  // REASONS
+  // =========================================================
 
-  // =========================================================
-  // REASONS / ALASAN
-  // =========================================================
   $$(".reason").forEach((card) => {
 
     card.addEventListener(
       "click",
       () => {
 
-        $$(".reason").forEach((x) => {
-          x.classList.remove("active");
+        $$(".reason").forEach((item) => {
+          item.classList.remove("active");
         });
 
         card.classList.add("active");
 
-        const detail =
-          $("#reasonDetail");
+        const detail = $("#reasonDetail");
 
         if (detail) {
-
           detail.hidden = false;
 
           detail.innerHTML =
@@ -466,10 +418,10 @@
     );
   });
 
-
   // =========================================================
   // WISH BUTTON
   // =========================================================
+
   $("#wishBtn")?.addEventListener(
     "click",
     () => {
@@ -492,10 +444,10 @@
     }
   );
 
-
   // =========================================================
   // FINAL BUTTON
   // =========================================================
+
   $("#finalBtn")?.addEventListener(
     "click",
     () => {
@@ -515,33 +467,32 @@
         "Surprise terakhir untuk Laeli 💗"
       );
 
-      const finalBtn =
+      const finalButton =
         $("#finalBtn");
 
-      if (finalBtn) {
-
-        finalBtn.textContent =
+      if (finalButton) {
+        finalButton.textContent =
           "♡ Untuk selamanya jadi kenangan ♡";
 
-        finalBtn.disabled = true;
+        finalButton.disabled = true;
       }
     }
   );
 
-
   // =========================================================
   // SCROLL REVEAL
   // =========================================================
+
   if ("IntersectionObserver" in window) {
 
     const observer =
       new IntersectionObserver(
         (entries) => {
 
-          entries.forEach((e) => {
+          entries.forEach((entry) => {
 
-            if (e.isIntersecting) {
-              e.target.classList.add("visible");
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
             }
 
           });
@@ -552,29 +503,28 @@
         }
       );
 
-    $$(".reveal").forEach((el) => {
-      observer.observe(el);
+    $$(".reveal").forEach((element) => {
+      observer.observe(element);
     });
 
   } else {
 
-    // Fallback untuk browser lama
-    $$(".reveal").forEach((el) => {
-      el.classList.add("visible");
+    $$(".reveal").forEach((element) => {
+      element.classList.add("visible");
     });
 
   }
 
+  // =========================================================
+  // HEARTS ON PAGE TAP
+  // =========================================================
 
-  // =========================================================
-  // GENTLE HEARTS ON PAGE TAP
-  // =========================================================
   document.addEventListener(
     "click",
-    (e) => {
+    (event) => {
 
       if (
-        e.target.closest(
+        event.target.closest(
           "button,.envelope,.modal"
         )
       ) {
@@ -585,35 +535,35 @@
         return;
       }
 
-      const h =
+      const heart =
         document.createElement("span");
 
-      h.className = "heart-float";
-      h.textContent = "♡";
+      heart.className = "heart-float";
+      heart.textContent = "♡";
 
-      h.style.left =
-        e.clientX + "px";
+      heart.style.left =
+        `${event.clientX}px`;
 
-      h.style.top =
-        e.clientY + "px";
+      heart.style.top =
+        `${event.clientY}px`;
 
-      h.style.setProperty(
+      heart.style.setProperty(
         "--x",
         `${(Math.random() - 0.5) * 70}px`
       );
 
-      document.body.appendChild(h);
+      document.body.appendChild(heart);
 
       setTimeout(() => {
-        h.remove();
+        heart.remove();
       }, 1700);
     }
   );
 
-
   // =========================================================
   // INITIAL STATE
   // =========================================================
+
   updateMusicButton();
 
 })();
