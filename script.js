@@ -5,79 +5,60 @@
 
   const gate = $("#gate"), site = $("#site"), openBtn = $("#openBtn");
   const toast = $("#toast");
-  let audioCtx = null;
-  let musicTimer = null;
-  let musicPlaying = false;
-  let musicStep = 0;
   const musicBtn = $("#musicBtn");
+  const bgMusic = $("#bgMusic");
+  
+  let musicPlaying = false;
+  
+  if (bgMusic) {
+    bgMusic.volume = 0.32;
+  }
+  
+  function startMusic(){
+    if (!bgMusic) return;
+  
+    bgMusic.volume = 0.32;
+  
+    bgMusic.play()
+      .then(() => {
+        musicPlaying = true;
+  
+        if (musicBtn) {
+          musicBtn.classList.remove("muted");
+          musicBtn.innerHTML = "♫ <span>Music</span>";
+          musicBtn.setAttribute("aria-label","Matikan backsound");
+          musicBtn.title = "Matikan backsound";
+        }
+      })
+      .catch(err => {
+        console.log("Backsound belum bisa diputar:", err);
+      });
+  }
+  
+  function stopMusic(){
+    if (!bgMusic) return;
+  
+    bgMusic.pause();
+    musicPlaying = false;
+  
+    if (musicBtn) {
+      musicBtn.classList.add("muted");
+      musicBtn.innerHTML = "♫̸ <span>Music</span>";
+      musicBtn.setAttribute("aria-label","Nyalakan backsound");
+      musicBtn.title = "Nyalakan backsound";
+    }
+  }
+
+musicBtn?.addEventListener("click", () => {
+  if (musicPlaying) {
+    stopMusic();
+  } else {
+    startMusic();
+  }
+});
 
   // Original, gentle birthday-style instrumental loop (no external audio file).
   // It starts only after the visitor clicks "Buka Kejutan", satisfying browser audio rules.
-  const musicNotes = [
-    [261.63, 329.63, 392.00], // C
-    [220.00, 261.63, 329.63], // Am
-    [174.61, 220.00, 261.63], // F
-    [196.00, 246.94, 293.66], // G
-    [261.63, 329.63, 392.00], // C
-    [220.00, 261.63, 329.63], // Am
-    [174.61, 220.00, 261.63], // F
-    [196.00, 246.94, 293.66]  // G
-  ];
-  const melody = [523.25, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25, 392.00];
-
-  function playMusicStep(){
-    if(!audioCtx || !musicPlaying) return;
-    const now = audioCtx.currentTime;
-    const chord = musicNotes[musicStep % musicNotes.length];
-    chord.forEach((freq, i)=>{
-      const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-      o.type="sine"; o.frequency.value=freq;
-      g.gain.setValueAtTime(0.0001, now);
-      g.gain.linearRampToValueAtTime(i===0 ? 0.018 : 0.012, now+0.08);
-      g.gain.exponentialRampToValueAtTime(0.0001, now+1.65);
-      o.connect(g); g.connect(audioCtx.destination);
-      o.start(now); o.stop(now+1.7);
-    });
-
-    const m=audioCtx.createOscillator(), mg=audioCtx.createGain();
-    m.type="triangle"; m.frequency.value=melody[musicStep % melody.length];
-    mg.gain.setValueAtTime(0.0001, now);
-    mg.gain.linearRampToValueAtTime(0.012, now+0.05);
-    mg.gain.exponentialRampToValueAtTime(0.0001, now+0.75);
-    m.connect(mg); mg.connect(audioCtx.destination);
-    m.start(now); m.stop(now+0.8);
-
-    musicStep++;
-  }
-
-  function startMusic(){
-    try{
-      audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
-      if(audioCtx.state==="suspended") audioCtx.resume();
-      if(musicPlaying) return;
-      musicPlaying=true;
-      musicStep=0;
-      playMusicStep();
-      musicTimer=setInterval(playMusicStep, 1750);
-      if(musicBtn){
-        musicBtn.classList.remove("muted");
-        musicBtn.innerHTML="♫ <span>Music</span>";
-        musicBtn.setAttribute("aria-label","Matikan backsound");
-        musicBtn.title="Matikan backsound";
-      }
-    }catch(e){}
-  }
-
-  function stopMusic(){
-    musicPlaying=false;
-    clearInterval(musicTimer); musicTimer=null;
-    if(musicBtn){
-      musicBtn.classList.add("muted");
-      musicBtn.innerHTML="♫̸ <span>Music</span>";
-      musicBtn.setAttribute("aria-label","Nyalakan backsound");
-      musicBtn.title="Nyalakan backsound";
-    }
-  }
 
   musicBtn?.addEventListener("click",()=>{
     if(musicPlaying) stopMusic();
